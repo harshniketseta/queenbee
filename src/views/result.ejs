@@ -1,0 +1,11 @@
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  var socket = io.connect('http://localhost');
+  socket.emit('needresult', { app: '<%= id %>' });
+  socket.on('result',function(data){
+  	document.getElementById("result_text").value = data.result;
+  })
+  </script>
+<title>Ignite Solutions-Result</title>
+<h1>Showing Result for Merge</h1>
+<label></label>

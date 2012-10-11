@@ -1,0 +1,64 @@
+<html>
+<head>
+	<script src="/socket.io/socket.io.js"></script>
+	<script>
+	  var array = [];
+	  var socket = io.connect('/');
+	  var security_context = function() {
+	  	var document = null;
+	  	var window = null;
+	  };
+	  
+	  socket.emit('register', { app: 'merge' });
+	
+		socket.on('eval', function(data) {
+			document.getElementById('random').style.display = "";
+			document.getElementById('merge').style.display = "none";
+			try {
+				eval (data.func);
+				var result = eval(data.prefix).apply(eval(data.prefix), data.args);
+				document.getElementById('code').value = "Function to be run:\n"+data.func;
+				document.getElementById('args').innerHTML = "Data entered:"+data.args
+			} catch(e) { console.log(e); }
+			socket.emit('resultPosting', {result:result, data:data.args});
+		});
+		socket.on('runsort', function(data) {
+			document.getElementById('random').style.display = "none";
+			document.getElementById('merge').style.display = "";
+			try {	
+					console.log(data);
+				  	array = data.array
+	  				document.getElementById("recieved_text").innerHTML = "Array Recieved:  "+array;
+	  				document.getElementById("sorting").style.display = "";
+					array.sort(sortNumber);
+	  				document.getElementById("sorted_text").innerHTML = "Sorted Array:  "+array;
+	  				socket.emit('sort_result',{'result':array})
+					console.log(result);
+			} catch(e) { console.log(e); }
+		});
+	function sortNumber(a,b)
+	{
+		return a - b;
+	}
+	
+	</script>
+</head>
+<title>Ignite Solutions-Pocket CRAY</title>
+<body>
+	<h1>Thank you for participating.</h1>
+	<h2>We will utilize you browser's processing power.</h2>
+	<div id="random" style="display:none;">
+		<textarea id="code" disabled="disabled" style="height: 207px; width: 477px; "></textarea>
+		</br>
+		<label id="args"></label>
+	</div>
+	<div id="merge" style="display:none;">
+		<label id="recieved_text"></label>
+		</br>
+		<label id="sorting" style="display:none;">Sorting...</label>
+		</br>
+		<label id="sorted_text"></label>
+		<label id="code"></label>
+	</div>
+</body>
+</html>

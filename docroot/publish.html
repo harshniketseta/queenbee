@@ -1,0 +1,219 @@
+<!doctype html>
+<html>
+	<title>Ignite Solutions-Distributed Merge Sort</title>
+	<head>
+		<link rel="stylesheet" type="text/css" media="screen" href="styles.css">
+		<script src="/socket.io/socket.io.js"></script>
+		<script type="text/javascript">
+			var array = [];
+  			var socket = io.connect('/');
+  			var result_list = new Array(0);
+  			var hive_strength = 0;
+  			var returned_results = 0;
+  			socket.emit('publisher', { app: 'merge' });
+  
+			function push_data(code,data){
+  				socket.emit('call', { code:code, data:data });
+  				returned_results = 0;
+  				document.getElementById("")
+  				document.getElementById("button1").style.display = "none";
+  				document.getElementById("img2").style.display = "";
+  			}
+  			
+  			socket.on('strength',function(data){
+  				// console.log(data)
+  				document.getElementById("strength").innerHTML="Strength:"+data.strength;
+  				document.getElementById("strength_sort").innerHTML="Strength:"+data.strength;
+  				
+  				document.getElementById('net1').classList.add('glow');
+				document.getElementById('net1').classList.remove('normal');
+				document.getElementById('net2').classList.add('glow');
+				document.getElementById('net2').classList.remove('normal');
+				
+				var t=setTimeout("goto_normal()",100);
+  				
+  				hive_strength = data.strength;
+  			})
+  			
+  			function goto_normal(){
+  				document.getElementById('net1').classList.remove('glow');
+  				document.getElementById('net1').classList.add('normal');
+				document.getElementById('net2').classList.remove('glow');
+				document.getElementById('net2').classList.add('normal');
+  			}
+  			socket.on('result',function(data){
+  				console.log(data)
+  				// document.getElementById("res").style.display = "";
+  				// document.getElementById("result_text").innerHTML = "Result:" + data.result;
+  				// document.getElementById("img1").style.display = "none";
+  				// document.getElementById("img2").style.display = "";
+  				
+  				returned_results ++;
+  				result_list = result_list.concat(data.result);
+				var row = result_table.insertRow(result_table.rows.length);
+				var cell = row.insertCell();
+				cell.textContent = data.result.join(", ");
+				cell = row.insertCell();
+				cell.textContent = ""+returned_results;
+								
+  				if (returned_results == hive_strength) {
+  					document.getElementById('allowmerge').style.display="";	
+  				}
+  			})
+  			
+  			socket.on('resultsort',function(data){
+  				console.log("inside resultsort"+data)
+  				// document.getElementById("res").style.display = "";
+  				// document.getElementById("result_text").innerHTML = "Result:" + data.result;
+  				// document.getElementById("img1").style.display = "none";
+  				// document.getElementById("img2").style.display = "";
+  				change_display('resultsort');
+  				document.getElementById('sortedresult').innerHTML = data.result;
+  			})
+
+			function code1(){
+				code1="function generate(len,max){\nvar randomNumArray=[];\n\tfor(i=0;i<len;i++)\n\t\trandomNumArray[i] = Math.floor(Math.random()*max);\n\treturn randomNumArray;\n}"
+				document.getElementById("code").value = code1;		
+			}
+
+			function change_display(div_id) {
+				var divs = document.getElementsByTagName('div');
+				var ele = null;
+				for (ele in divs) {
+					if (divs.hasOwnProperty(ele) && divs[ele].id && divs[ele].id.match("^viewspecific_[a-z]*_div")) {
+						divs[ele].style.display = (divs[ele].id.match("^viewspecific_"+div_id+"_div")?'':'none');
+					}
+				}
+			}
+
+			function clearout_results() {
+				while(result_table.rows.length - 1) {
+					result_table.deleteRow(result_table.rows.length - 1);
+				}
+				delete result_list;
+				result_list = new Array(0);
+				returned_results = 0;
+			}
+			function preparesort(){
+				change_display("dataforsort");
+				document.getElementById('sortdata').value = result_list
+			}
+			
+			function runsort(){
+				console.log("In runsort")
+				socket.emit('callsort',{ data: result_list })
+			}
+			
+		</script>
+	</head>
+	<body width="100%" style='background-color: #333; line-height: normal; color: AntiqueWhite; font-variant: normal; text-transform: none; font-style: normal; font-size: 14px; text-decoration: none; font-family: "Trebuchet MS", Sans-Serif; font-weight: normal'>
+		<h2>Welcome to Ignite Solutions</h2>
+
+		<div id="sidebar_div" style="width: 100%; height: 50px">
+			<div style="float:right; height: inherit ; padding-left: 5px; padding-right: 5px">
+				<input id="buttonresults" name="Results Page" type="image" align="center" style="height: 70%; padding-left: 2px" src="images/report.png" onclick="change_display('results');">
+				<br />
+				<label>Result</label>
+			</div>
+			<div style="float:right; height: inherit; padding-left: 5px; padding-right: 5px">
+				<input id="buttonnetwork" name="Network Topology" type="image" align="center" style="height: 70%; padding-left: 9px" src="images/networking.png" onclick="change_display('network');">
+				<br />
+				<label>Network</label>
+			</div>
+			<div style="float:right; height: inherit; padding-left: 5px; padding-right: 5px">
+				<input id="buttoncode" name="Control Panel" type="image" align="center" style="height: 70%; padding-left: 5px" src="images/process_pub.png" onclick="change_display('code');">
+				<br />
+				<label>Publish</label>
+			</div>
+		</div>
+		
+		<div id="viewspecific_code_div">
+			<table width="100%">
+				<tr id="enter">
+					<td>
+						<div id="ex5">
+							<img alt="" id="net1" src="images/computernetwork.png" style="height: 71px; width: 71px;" >
+							</br>
+							<label id="strength">Strength:</label>
+						</div>
+					</td>
+					<td style="top: 0px; vertical-align: top">
+						<div style="align:top">
+							<label for="code">Input code here:</label>
+							</br>
+							<textarea id="code" name="data" type="text" style="width: 598px; height: 256px"></textarea>
+							</br>
+							<a href="javascript: code1();">Randomize Func</a>
+						</div>
+					</td>
+					<td style="top: 0px;">
+						<div style="top:0px">
+							<label for="data">Input data here(comma seperated):</label>
+							</br>
+							<input id="data" name="data" type="text" style="width: 376px;">
+						</div>
+					</td>
+					<td>
+						<input id="button1" type="image" src="images/process.png" style="float:right; height: 61px; width: 63px" onclick="push_data(document.getElementById('code').value,document.getElementById('data').value); change_display('results');">
+						<img id="img1" style="display:none;" src="images/waiting.gif" alt="Working">
+						<img id="img2" style="display:none;" src="images/tester.gif" alt="Done">
+					</td>
+				</tr>
+			</table>
+		</div>
+		
+		<div id="viewspecific_dataforsort_div" style="display: none">
+			<table width="100%">
+				<tr>
+					<td>
+						<div id="ex6">
+							<img alt="" id="net2" src="images/computernetwork.png" style="height: 71px; width: 71px;" >
+							</br>
+							<label id="strength_sort">Strength:</label>
+						</div>
+					</td>
+					<td style="top: 0px; vertical-align: top">
+						<div style="align:top">
+							<label for="sortdata">Run Sort on this data:</label>
+							</br>
+							<textarea id="sortdata" name="data" type="text" style="width: 598px; height: 256px"></textarea>
+							</br>
+						</div>
+					</td>
+					<td>
+						<input id="button1_sort" type="image" src="images/process.png" style="float:right; height: 61px; width: 63px" onclick="runsort();">
+						<img id="img1_sort" style="display:none;" src="images/waiting.gif" alt="Working">
+						<img id="img2_sort" style="display:none;" src="images/tester.gif" alt="Done">
+					</td>
+				</tr>
+			</table>
+		</div>
+		
+		<div id="viewspecific_network_div" style="display: none">
+			<h3>Network Topology</h3>
+		</div>
+		
+		<div id="viewspecific_results_div" style="display: none">
+			<h3>Results Page</h3>
+			<div>
+				<input type="button" value="Clear" id="clearout" onclick="clearout_results();"/>
+				<table id="result_table" cellpadding="5px" cellspacing="2px" border="1px">
+					<tr>
+						<td>n</td><td>Results</td>
+					</tr>
+				</table>
+				</br>
+				<a id="allowmerge" style="display:none;" href="javascript:preparesort();">Merge Result and Run Distributed Sorting</a>
+			</div>
+		</div>
+		
+		<div id="viewspecific_resultsort_div" style="display: none">
+			<h3>Results Page</h3>
+			<div>
+				<input type="button" value="Clear" id="clearout" onclick="clearout_results();"/>
+				<textarea id="sortedresult" disabled="disabled" style="height: 207px; width: 477px;"></textarea>
+			</div>
+		</div>
+				
+	</body>
+</html>
